@@ -1,0 +1,51 @@
+#!/bin/bash
+# Flutter Project Configuration Script
+# Run this in a new Flutter project directory to auto-configure it
+
+echo "🔧 Configuring Flutter project..."
+
+# Check if we're in a Flutter project
+if [ ! -f "pubspec.yaml" ]; then
+    echo "❌ Error: pubspec.yaml not found. Are you in a Flutter project directory?"
+    exit 1
+fi
+
+PROJECT_NAME=$(grep '^name:' pubspec.yaml | awk '{print $2}')
+echo "Project: $PROJECT_NAME"
+echo ""
+
+# 1. Update Gradle version
+if [ -f "android/gradle/wrapper/gradle-wrapper.properties" ]; then
+    echo "📝 Updating Gradle wrapper..."
+    sed -i 's|gradle-.*-all.zip|gradle-8.13-all.zip|' android/gradle/wrapper/gradle-wrapper.properties
+    echo "✓ Gradle updated to 8.13"
+fi
+
+# 2. Configure gradle.properties
+if [ -f "android/gradle.properties" ]; then
+    echo "📝 Configuring android/gradle.properties..."
+    
+    # Set JAVA_HOME
+    if ! grep -q "org.gradle.java.home" android/gradle.properties; then
+        echo "org.gradle.java.home=/usr/lib/jvm/java-17-openjdk" >> android/gradle.properties
+        echo "✓ Added org.gradle.java.home"
+    fi
+    
+    # Enable AndroidX
+    if ! grep -q "android.useAndroidX" android/gradle.properties; then
+        echo "android.useAndroidX=true" >> android/gradle.properties
+        echo "✓ Added android.useAndroidX=true"
+    fi
+    
+    # Set JVM args if not present
+    if ! grep -q "org.gradle.jvmargs" android/gradle.properties; then
+        echo "org.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=2G" >> android/gradle.properties
+        echo "✓ Added org.gradle.jvmargs"
+    fi
+fi
+
+echo ""
+echo "✅ Project configured! You can now run:"
+echo "   make web              # Run on web"
+echo "   make android          # Run on Android"
+echo "   make linux            # Run on Linux"
